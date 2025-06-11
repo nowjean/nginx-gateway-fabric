@@ -54,6 +54,7 @@ rules:
 - apiGroups:
   - ""
   - apps
+  - autoscaling
   resources:
   - secrets
   - configmaps
@@ -61,6 +62,7 @@ rules:
   - services
   - deployments
   - daemonsets
+  - horizontalpodautoscalers
   verbs:
   - create
   - update
@@ -410,14 +412,22 @@ metadata:
 spec:
   kubernetes:
     deployment:
+      autoscaling:
+        enabled: true
+        maxReplicas: 11
+        minReplicas: 1
+        targetCPUUtilizationPercentage: 50
+        targetMemoryUtilizationPercentage: 50
       container:
         image:
           pullPolicy: Always
           repository: ghcr.io/nginx/nginx-gateway-fabric/nginx
           tag: edge
+        resources: {}
       pod:
         nodeSelector:
           kubernetes.io/os: linux
+        tolerations: []
       replicas: 1
     service:
       externalTrafficPolicy: Local
