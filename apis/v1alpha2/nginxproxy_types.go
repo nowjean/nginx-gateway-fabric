@@ -1,6 +1,7 @@
 package v1alpha2
 
 import (
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -388,6 +389,11 @@ type DeploymentSpec struct {
 	// +optional
 	Replicas *int32 `json:"replicas,omitempty"`
 
+	// Horizontal Pod Autoscaling.
+	//
+	// +optional
+	Autoscaling HPASpec `json:"autoscaling"`
+
 	// Pod defines Pod-specific fields.
 	//
 	// +optional
@@ -410,6 +416,47 @@ type DaemonSetSpec struct {
 	//
 	// +optional
 	Container ContainerSpec `json:"container"`
+}
+
+type HPASpec struct {
+	// Enable or disable Horizontal Pod Autoscaler
+	Enabled bool `json:"enabled"`
+
+	// Annotation for Horizontal Pod Autoscaler
+	// Annotations is an unstructured key value map stored with a resource that may be
+	// set by external tools to store and retrieve arbitrary metadata. They are not
+	// queryable and should be preserved when modifying objects.
+	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations
+	// +optional
+	HPAAnnotations map[string]string `json:"hpaAnnotations,omitempty"`
+
+	// Minimun of replicas.
+	MinReplicas int32 `json:"minReplicas"`
+
+	// Minimun of replicas.
+	MaxReplicas int32 `json:"maxReplicas"`
+
+	// Target cpu utilization percentage of HPA.
+	//
+	// +optional
+	TargetCPUUtilizationPercentage *int32 `json:"targetCPUUtilizationPercentage,omitempty"`
+
+	// Target memory utilization percentage of HPA.
+	//
+	// +optional
+	TargetMemoryUtilizationPercentage *int32 `json:"targetMemoryUtilizationPercentage,omitempty"`
+
+	// behavior configures the scaling behavior of the target
+	// in both Up and Down directions (scaleUp and scaleDown fields respectively).
+	// If not set, the default HPAScalingRules for scale up and scale down are used.
+	//
+	// +optional
+	Behavior *autoscalingv2.HorizontalPodAutoscalerBehavior `json:"behavior,omitempty"`
+
+	// AutoscalingTemplate configures the addtional scaling option.
+	//
+	// +optional
+	AutoscalingTemplate *[]autoscalingv2.MetricSpec `json:"autoscalingTemplate,omitempty"`
 }
 
 // PodSpec defines Pod-specific fields.

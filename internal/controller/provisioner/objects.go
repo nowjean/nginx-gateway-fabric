@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"maps"
 	"sort"
 	"strconv"
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -152,6 +154,7 @@ func (p *NginxProvisioner) buildNginxResourceObjects(
 	// role/binding (if openshift)
 	// service
 	// deployment/daemonset
+	// hpa
 
 	objects := make([]client.Object, 0, len(configmaps)+len(secrets)+len(openshiftObjs)+3)
 	objects = append(objects, secrets...)
@@ -160,7 +163,25 @@ func (p *NginxProvisioner) buildNginxResourceObjects(
 	if p.isOpenshift {
 		objects = append(objects, openshiftObjs...)
 	}
-	objects = append(objects, service, deployment)
+
+	if nProxyCfg.Kubernetes.Deployment.Autoscaling.Enabled {
+		hpaAnnotations := make(map[string]string)
+		if nProxyCfg.Kubernetes.Deployment.Autoscaling.HPAAnnotations != nil {
+			for key, value := range nProxyCfg.Kubernetes.Deployment.Autoscaling.HPAAnnotations {
+				hpaAnnotations[string(key)] = string(value)
+			}
+		}
+
+		objectMeta.Annotations = hpaAnnotations
+
+		hpa := buildNginxDeploymentHPA(
+			objectMeta,
+			nProxyCfg,
+		)
+		objects = append(objects, service, deployment, hpa)
+	} else {
+		objects = append(objects, service, deployment)
+	}
 
 	return objects, err
 }
@@ -895,6 +916,153 @@ func (p *NginxProvisioner) buildImage(nProxyCfg *graph.EffectiveNginxProxy) (str
 	return fmt.Sprintf("%s:%s", image, tag), pullPolicy
 }
 
+func getMetricTargetByType(
+	target autoscalingv2.MetricTarget,
+) autoscalingv2.MetricTarget {
+
+	switch target.Type {
+	case autoscalingv2.UtilizationMetricType:
+		return autoscalingv2.MetricTarget{
+			Type:               autoscalingv2.UtilizationMetricType,
+			AverageUtilization: target.AverageUtilization,
+		}
+
+	case autoscalingv2.AverageValueMetricType:
+		return autoscalingv2.MetricTarget{
+			Type:         autoscalingv2.AverageValueMetricType,
+			AverageValue: target.AverageValue,
+		}
+
+	case autoscalingv2.ValueMetricType:
+		return autoscalingv2.MetricTarget{
+			Type:  autoscalingv2.ValueMetricType,
+			Value: target.Value,
+		}
+	default:
+		return autoscalingv2.MetricTarget{}
+	}
+
+}
+
+func buildNginxDeploymentHPA(
+	objectMeta metav1.ObjectMeta,
+	nProxyCfg *graph.EffectiveNginxProxy,
+) *autoscalingv2.HorizontalPodAutoscaler {
+	var metrics []autoscalingv2.MetricSpec
+
+	cpuUtil := nProxyCfg.Kubernetes.Deployment.Autoscaling.TargetCPUUtilizationPercentage
+	memUtil := nProxyCfg.Kubernetes.Deployment.Autoscaling.TargetMemoryUtilizationPercentage
+	autoscalingTemplate := nProxyCfg.Kubernetes.Deployment.Autoscaling.AutoscalingTemplate
+
+	if cpuUtil != nil {
+		metrics = append(metrics, autoscalingv2.MetricSpec{
+			Type: autoscalingv2.ResourceMetricSourceType,
+			Resource: &autoscalingv2.ResourceMetricSource{
+				Name: "cpu",
+				Target: autoscalingv2.MetricTarget{
+					Type:               autoscalingv2.UtilizationMetricType,
+					AverageUtilization: cpuUtil,
+				},
+			},
+		})
+	}
+
+	if memUtil != nil {
+		metrics = append(metrics, autoscalingv2.MetricSpec{
+			Type: autoscalingv2.ResourceMetricSourceType,
+			Resource: &autoscalingv2.ResourceMetricSource{
+				Name: "memory",
+				Target: autoscalingv2.MetricTarget{
+					Type:               autoscalingv2.UtilizationMetricType,
+					AverageUtilization: memUtil,
+				},
+			},
+		})
+	}
+
+	if autoscalingTemplate != nil {
+		for _, addtionalAutoscaling := range *autoscalingTemplate {
+
+			switch addtionalAutoscaling.Type {
+			case autoscalingv2.ResourceMetricSourceType:
+				metrics = append(metrics, autoscalingv2.MetricSpec{
+					Type: addtionalAutoscaling.Type,
+					Resource: &autoscalingv2.ResourceMetricSource{
+						Name:   addtionalAutoscaling.Resource.Name,
+						Target: getMetricTargetByType(addtionalAutoscaling.Resource.Target),
+					},
+				})
+
+			case autoscalingv2.PodsMetricSourceType:
+				metrics = append(metrics, autoscalingv2.MetricSpec{
+					Type: addtionalAutoscaling.Type,
+					Pods: &autoscalingv2.PodsMetricSource{
+						Metric: addtionalAutoscaling.Pods.Metric,
+						Target: getMetricTargetByType(addtionalAutoscaling.Pods.Target),
+					},
+				})
+
+			case autoscalingv2.ContainerResourceMetricSourceType:
+				metrics = append(metrics, autoscalingv2.MetricSpec{
+					Type: addtionalAutoscaling.Type,
+					ContainerResource: &autoscalingv2.ContainerResourceMetricSource{
+						Name:      addtionalAutoscaling.ContainerResource.Name,
+						Target:    getMetricTargetByType(addtionalAutoscaling.ContainerResource.Target),
+						Container: addtionalAutoscaling.ContainerResource.Container,
+					},
+				})
+
+			case autoscalingv2.ObjectMetricSourceType:
+				metrics = append(metrics, autoscalingv2.MetricSpec{
+					Type: addtionalAutoscaling.Type,
+					Object: &autoscalingv2.ObjectMetricSource{
+						DescribedObject: addtionalAutoscaling.Object.DescribedObject,
+						Target:          getMetricTargetByType(addtionalAutoscaling.Object.Target),
+						Metric: autoscalingv2.MetricIdentifier{
+							Name:     addtionalAutoscaling.Object.Metric.Name,
+							Selector: addtionalAutoscaling.Object.Metric.Selector,
+						},
+					},
+				})
+
+			case autoscalingv2.ExternalMetricSourceType:
+				metrics = append(metrics, autoscalingv2.MetricSpec{
+					Type: addtionalAutoscaling.Type,
+					External: &autoscalingv2.ExternalMetricSource{
+						Metric: autoscalingv2.MetricIdentifier{
+							Name:     addtionalAutoscaling.External.Metric.Name,
+							Selector: addtionalAutoscaling.External.Metric.Selector,
+						},
+						Target: getMetricTargetByType(addtionalAutoscaling.External.Target),
+					},
+				})
+			}
+		}
+	}
+
+	if len(metrics) == 0 {
+		log.Fatal("No HPA metric provided")
+		return nil
+	}
+
+	hpa := &autoscalingv2.HorizontalPodAutoscaler{
+		ObjectMeta: objectMeta,
+		Spec: autoscalingv2.HorizontalPodAutoscalerSpec{
+			ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
+				APIVersion: "apps/v1",
+				Kind:       "Deployment",
+				Name:       objectMeta.Name,
+			},
+			MinReplicas: &nProxyCfg.Kubernetes.Deployment.Autoscaling.MinReplicas,
+			MaxReplicas: nProxyCfg.Kubernetes.Deployment.Autoscaling.MaxReplicas,
+			Metrics:     metrics,
+			Behavior:    nProxyCfg.Kubernetes.Deployment.Autoscaling.Behavior,
+		},
+	}
+
+	return hpa
+}
+
 // TODO(sberman): see about how this can be made more elegant. Maybe create some sort of Object factory
 // that can better store/build all the objects we need, to reduce the amount of duplicate object lists that we
 // have everywhere.
@@ -906,6 +1074,7 @@ func (p *NginxProvisioner) buildNginxResourceObjectsForDeletion(deploymentNSName
 	// serviceaccount
 	// configmaps
 	// secrets
+	// hpa
 
 	objectMeta := metav1.ObjectMeta{
 		Name:      deploymentNSName.Name,
@@ -921,8 +1090,11 @@ func (p *NginxProvisioner) buildNginxResourceObjectsForDeletion(deploymentNSName
 	service := &corev1.Service{
 		ObjectMeta: objectMeta,
 	}
+	hpa := &autoscalingv2.HorizontalPodAutoscaler{
+		ObjectMeta: objectMeta,
+	}
 
-	objects := []client.Object{deployment, daemonSet, service}
+	objects := []client.Object{deployment, daemonSet, service, hpa}
 
 	if p.isOpenshift {
 		role := &rbacv1.Role{

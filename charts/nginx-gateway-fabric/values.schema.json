@@ -98,6 +98,62 @@
     "nginx": {
       "description": "The nginx section contains the configuration for all NGINX data plane deployments\ninstalled by the NGINX Gateway Fabric control plane.",
       "properties": {
+        "autoscaling": {
+          "properties": {
+            "behavior": {
+              "required": [],
+              "title": "behavior",
+              "type": "object"
+            },
+            "enabled": {
+              "default": true,
+              "description": "Enable or disable Horizontal Pod Autoscaler",
+              "required": [],
+              "title": "enabled",
+              "type": "boolean"
+            },
+            "hpaAnnotations": {
+              "required": [],
+              "title": "hpaAnnotations",
+              "type": "object"
+            },
+            "maxReplicas": {
+              "default": 11,
+              "required": [],
+              "title": "maxReplicas",
+              "type": "integer"
+            },
+            "minReplicas": {
+              "default": 1,
+              "required": [],
+              "title": "minReplicas",
+              "type": "integer"
+            },
+            "targetCPUUtilizationPercentage": {
+              "default": 50,
+              "required": [],
+              "title": "targetCPUUtilizationPercentage",
+              "type": "integer"
+            },
+            "targetMemoryUtilizationPercentage": {
+              "default": 50,
+              "required": [],
+              "title": "targetMemoryUtilizationPercentage",
+              "type": "integer"
+            }
+          },
+          "required": [],
+          "title": "autoscaling",
+          "type": "object"
+        },
+        "autoscalingTemplate": {
+          "items": {
+            "required": []
+          },
+          "required": [],
+          "title": "autoscalingTemplate",
+          "type": "array"
+        },
         "config": {
           "description": "The configuration for the data plane that is contained in the NginxProxy resource. This is applied globally to all Gateways\nmanaged by this instance of NGINX Gateway Fabric.",
           "properties": {
@@ -313,6 +369,14 @@
         },
         "container": {
           "description": "The container configuration for the NGINX container. This is applied globally to all Gateways managed by this\ninstance of NGINX Gateway Fabric.",
+          "properties": {
+            "resources": {
+              "description": "The resource requirements of the NGINX container. You should be set this value, If you want to use dataplane Autoscaling(HPA).",
+              "required": [],
+              "title": "resources",
+              "type": "object"
+            }
+          },
           "required": [],
           "title": "container",
           "type": "object"
@@ -325,6 +389,7 @@
           "type": "boolean"
         },
         "image": {
+          "description": "Custom or additional autoscaling metrics\nref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#support-for-custom-metrics\n- type: Pods\n  pods:\n    metric:\n      name: nginx_gateway_fabric_nginx_process_requests_total\n    target:\n      type: AverageValue\n      averageValue: 10000m",
           "properties": {
             "pullPolicy": {
               "default": "Always",
@@ -389,6 +454,17 @@
         },
         "pod": {
           "description": "The pod configuration for the NGINX data plane pod. This is applied globally to all Gateways managed by this\ninstance of NGINX Gateway Fabric.",
+          "properties": {
+            "tolerations": {
+              "description": "Tolerations for the NGINX data plane pod.",
+              "items": {
+                "required": []
+              },
+              "required": [],
+              "title": "tolerations",
+              "type": "array"
+            }
+          },
           "required": [],
           "title": "pod",
           "type": "object"
@@ -539,6 +615,62 @@
           "required": [],
           "title": "affinity",
           "type": "object"
+        },
+        "autoscaling": {
+          "properties": {
+            "annotations": {
+              "required": [],
+              "title": "annotations",
+              "type": "object"
+            },
+            "behavior": {
+              "required": [],
+              "title": "behavior",
+              "type": "object"
+            },
+            "enabled": {
+              "default": false,
+              "description": "Enable or disable Horizontal Pod Autoscaler",
+              "required": [],
+              "title": "enabled",
+              "type": "boolean"
+            },
+            "maxReplicas": {
+              "default": 11,
+              "required": [],
+              "title": "maxReplicas",
+              "type": "integer"
+            },
+            "minReplicas": {
+              "default": 1,
+              "required": [],
+              "title": "minReplicas",
+              "type": "integer"
+            },
+            "targetCPUUtilizationPercentage": {
+              "default": 50,
+              "required": [],
+              "title": "targetCPUUtilizationPercentage",
+              "type": "integer"
+            },
+            "targetMemoryUtilizationPercentage": {
+              "default": 50,
+              "required": [],
+              "title": "targetMemoryUtilizationPercentage",
+              "type": "integer"
+            }
+          },
+          "required": [],
+          "title": "autoscaling",
+          "type": "object"
+        },
+        "autoscalingTemplate": {
+          "items": {
+            "required": []
+          },
+          "required": [],
+          "title": "autoscalingTemplate",
+          "type": "array"
         },
         "config": {
           "description": "The dynamic configuration for the control plane that is contained in the NginxGateway resource.",
@@ -725,13 +857,6 @@
           "required": [],
           "title": "metrics",
           "type": "object"
-        },
-        "name": {
-          "default": "",
-          "description": "The name of the NGINX Gateway Fabric deployment - if not present, then by default uses release name given during installation.",
-          "required": [],
-          "title": "name",
-          "type": "string"
         },
         "nodeSelector": {
           "description": "The nodeSelector of the NGINX Gateway Fabric control plane pod.",
