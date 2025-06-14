@@ -2,7 +2,7 @@
 apiVersion: {{ ternary "autoscaling/v2" "autoscaling/v2beta2" (.Capabilities.APIVersions.Has "autoscaling/v2") }}
 kind: HorizontalPodAutoscaler
 metadata:
-  {{- with .Values.autoscaling.annotations }}
+  {{- with .Values.nginxGateway.autoscaling.annotations }}
   annotations: {{ toYaml . | nindent 4 }}
   {{- end }}
   labels:
@@ -17,10 +17,10 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ include "nginx-gateway.fullname" . }}
-  minReplicas: {{ .Values.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  minReplicas: {{ .Values.nginxGateway.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.nginxGateway.autoscaling.maxReplicas }}
   metrics:
-  {{- with .Values.autoscaling.targetMemoryUtilizationPercentage }}
+  {{- with .Values.nginxGateway.autoscaling.targetMemoryUtilizationPercentage }}
   - type: Resource
     resource:
       name: memory
@@ -28,7 +28,7 @@ spec:
         type: Utilization
         averageUtilization: {{ . }}
   {{- end }}
-  {{- with .Values.autoscaling.targetCPUUtilizationPercentage }}
+  {{- with .Values.nginxGateway.autoscaling.targetCPUUtilizationPercentage }}
   - type: Resource
     resource:
       name: cpu
@@ -39,7 +39,7 @@ spec:
   {{- with .Values.autoscalingTemplate }}
   {{- toYaml . | nindent 2 }}
   {{- end }}
-  {{- with .Values.autoscaling.behavior }}
+  {{- with .Values.nginxGateway.autoscaling.behavior }}
   behavior:
     {{- toYaml . | nindent 4 }}
   {{- end }}

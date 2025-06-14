@@ -157,6 +157,7 @@ nginxGateway:
   topologySpreadConstraints: []
 
   autoscaling:
+    # Enable or disable Horizontal Pod Autoscaler
     enabled: false
     annotations: {}
     minReplicas: 1
@@ -251,8 +252,6 @@ nginx:
   # Secrets must exist in the same namespace as the helm release. The control
   # plane will copy these secrets into any namespace where NGINX is deployed.
   imagePullSecrets: []
-
-  resources: {}
 
   # Configuration for NGINX Plus usage reporting.
   usage:
