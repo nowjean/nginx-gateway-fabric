@@ -309,6 +309,7 @@ The following table lists the configurable parameters of the NGINX Gateway Fabri
 | `nginxGateway.metrics.enable` | Enable exposing metrics in the Prometheus format. | bool | `true` |
 | `nginxGateway.metrics.port` | Set the port where the Prometheus metrics are exposed. | int | `9113` |
 | `nginxGateway.metrics.secure` | Enable serving metrics via https. By default metrics are served via http. Please note that this endpoint will be secured with a self-signed certificate. | bool | `false` |
+| `nginxGateway.name` | The name of the NGINX Gateway Fabric deployment - if not present, then by default uses release name given during installation. | string | `""` |
 | `nginxGateway.nodeSelector` | The nodeSelector of the NGINX Gateway Fabric control plane pod. | object | `{}` |
 | `nginxGateway.podAnnotations` | Set of custom annotations for the NGINX Gateway Fabric pods. | object | `{}` |
 | `nginxGateway.productTelemetry.enable` | Enable the collection of product telemetry. | bool | `true` |
