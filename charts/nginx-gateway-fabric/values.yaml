@@ -608,7 +608,6 @@ certGenerator:
 
 # -- A list of Gateway objects. View https://gateway-api.sigs.k8s.io/reference/spec/#gateway for full Gateway reference.
 gateways: []
-
 # Example gateway object:
 # name: nginx-gateway
 # namespace: default
