@@ -419,8 +419,27 @@ type DaemonSetSpec struct {
 }
 
 type HPASpec struct {
-	// Enable or disable Horizontal Pod Autoscaler
-	Enabled bool `json:"enabled"`
+	// behavior configures the scaling behavior of the target
+	// in both Up and Down directions (scaleUp and scaleDown fields respectively).
+	// If not set, the default HPAScalingRules for scale up and scale down are used.
+	//
+	// +optional
+	Behavior *autoscalingv2.HorizontalPodAutoscalerBehavior `json:"behavior,omitempty"`
+
+	// AutoscalingTemplate configures the additional scaling option.
+	//
+	// +optional
+	AutoscalingTemplate *[]autoscalingv2.MetricSpec `json:"autoscalingTemplate,omitempty"`
+
+	// Target cpu utilization percentage of HPA.
+	//
+	// +optional
+	TargetCPUUtilizationPercentage *int32 `json:"targetCPUUtilizationPercentage,omitempty"`
+
+	// Target memory utilization percentage of HPA.
+	//
+	// +optional
+	TargetMemoryUtilizationPercentage *int32 `json:"targetMemoryUtilizationPercentage,omitempty"`
 
 	// Annotation for Horizontal Pod Autoscaler
 	// Annotations is an unstructured key value map stored with a resource that may be
@@ -436,27 +455,8 @@ type HPASpec struct {
 	// Minimun of replicas.
 	MaxReplicas int32 `json:"maxReplicas"`
 
-	// Target cpu utilization percentage of HPA.
-	//
-	// +optional
-	TargetCPUUtilizationPercentage *int32 `json:"targetCPUUtilizationPercentage,omitempty"`
-
-	// Target memory utilization percentage of HPA.
-	//
-	// +optional
-	TargetMemoryUtilizationPercentage *int32 `json:"targetMemoryUtilizationPercentage,omitempty"`
-
-	// behavior configures the scaling behavior of the target
-	// in both Up and Down directions (scaleUp and scaleDown fields respectively).
-	// If not set, the default HPAScalingRules for scale up and scale down are used.
-	//
-	// +optional
-	Behavior *autoscalingv2.HorizontalPodAutoscalerBehavior `json:"behavior,omitempty"`
-
-	// AutoscalingTemplate configures the addtional scaling option.
-	//
-	// +optional
-	AutoscalingTemplate *[]autoscalingv2.MetricSpec `json:"autoscalingTemplate,omitempty"`
+	// Enable or disable Horizontal Pod Autoscaler
+	Enabled bool `json:"enabled"`
 }
 
 // PodSpec defines Pod-specific fields.

@@ -187,7 +187,7 @@ nginxGateway:
   #     target:
   #       type: AverageValue
   #       averageValue: 10000m
-  
+
   metrics:
     # -- Enable exposing metrics in the Prometheus format.
     enable: true
@@ -464,9 +464,7 @@ nginx:
   # instance of NGINX Gateway Fabric.
   container:
     # -- The resource requirements of the NGINX container. You should be set this value, If you want to use dataplane Autoscaling(HPA).
-    resources: {} 
-
-
+    resources: {}
     # -- The lifecycle of the NGINX container.
     # lifecycle: {}
 
@@ -563,7 +561,6 @@ certGenerator:
 
 # -- A list of Gateway objects. View https://gateway-api.sigs.k8s.io/reference/spec/#gateway for full Gateway reference.
 gateways: []
-
 # Example gateway object:
 # name: nginx-gateway
 # namespace: default

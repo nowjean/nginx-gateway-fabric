@@ -168,7 +168,7 @@ func (p *NginxProvisioner) buildNginxResourceObjects(
 		hpaAnnotations := make(map[string]string)
 		if nProxyCfg.Kubernetes.Deployment.Autoscaling.HPAAnnotations != nil {
 			for key, value := range nProxyCfg.Kubernetes.Deployment.Autoscaling.HPAAnnotations {
-				hpaAnnotations[string(key)] = string(value)
+				hpaAnnotations[key] = value
 			}
 		}
 
@@ -919,7 +919,6 @@ func (p *NginxProvisioner) buildImage(nProxyCfg *graph.EffectiveNginxProxy) (str
 func getMetricTargetByType(
 	target autoscalingv2.MetricTarget,
 ) autoscalingv2.MetricTarget {
-
 	switch target.Type {
 	case autoscalingv2.UtilizationMetricType:
 		return autoscalingv2.MetricTarget{
@@ -941,7 +940,6 @@ func getMetricTargetByType(
 	default:
 		return autoscalingv2.MetricTarget{}
 	}
-
 }
 
 func buildNginxDeploymentHPA(
@@ -981,59 +979,58 @@ func buildNginxDeploymentHPA(
 	}
 
 	if autoscalingTemplate != nil {
-		for _, addtionalAutoscaling := range *autoscalingTemplate {
-
-			switch addtionalAutoscaling.Type {
+		for _, additionalAutoscaling := range *autoscalingTemplate {
+			switch additionalAutoscaling.Type {
 			case autoscalingv2.ResourceMetricSourceType:
 				metrics = append(metrics, autoscalingv2.MetricSpec{
-					Type: addtionalAutoscaling.Type,
+					Type: additionalAutoscaling.Type,
 					Resource: &autoscalingv2.ResourceMetricSource{
-						Name:   addtionalAutoscaling.Resource.Name,
-						Target: getMetricTargetByType(addtionalAutoscaling.Resource.Target),
+						Name:   additionalAutoscaling.Resource.Name,
+						Target: getMetricTargetByType(additionalAutoscaling.Resource.Target),
 					},
 				})
 
 			case autoscalingv2.PodsMetricSourceType:
 				metrics = append(metrics, autoscalingv2.MetricSpec{
-					Type: addtionalAutoscaling.Type,
+					Type: additionalAutoscaling.Type,
 					Pods: &autoscalingv2.PodsMetricSource{
-						Metric: addtionalAutoscaling.Pods.Metric,
-						Target: getMetricTargetByType(addtionalAutoscaling.Pods.Target),
+						Metric: additionalAutoscaling.Pods.Metric,
+						Target: getMetricTargetByType(additionalAutoscaling.Pods.Target),
 					},
 				})
 
 			case autoscalingv2.ContainerResourceMetricSourceType:
 				metrics = append(metrics, autoscalingv2.MetricSpec{
-					Type: addtionalAutoscaling.Type,
+					Type: additionalAutoscaling.Type,
 					ContainerResource: &autoscalingv2.ContainerResourceMetricSource{
-						Name:      addtionalAutoscaling.ContainerResource.Name,
-						Target:    getMetricTargetByType(addtionalAutoscaling.ContainerResource.Target),
-						Container: addtionalAutoscaling.ContainerResource.Container,
+						Name:      additionalAutoscaling.ContainerResource.Name,
+						Target:    getMetricTargetByType(additionalAutoscaling.ContainerResource.Target),
+						Container: additionalAutoscaling.ContainerResource.Container,
 					},
 				})
 
 			case autoscalingv2.ObjectMetricSourceType:
 				metrics = append(metrics, autoscalingv2.MetricSpec{
-					Type: addtionalAutoscaling.Type,
+					Type: additionalAutoscaling.Type,
 					Object: &autoscalingv2.ObjectMetricSource{
-						DescribedObject: addtionalAutoscaling.Object.DescribedObject,
-						Target:          getMetricTargetByType(addtionalAutoscaling.Object.Target),
+						DescribedObject: additionalAutoscaling.Object.DescribedObject,
+						Target:          getMetricTargetByType(additionalAutoscaling.Object.Target),
 						Metric: autoscalingv2.MetricIdentifier{
-							Name:     addtionalAutoscaling.Object.Metric.Name,
-							Selector: addtionalAutoscaling.Object.Metric.Selector,
+							Name:     additionalAutoscaling.Object.Metric.Name,
+							Selector: additionalAutoscaling.Object.Metric.Selector,
 						},
 					},
 				})
 
 			case autoscalingv2.ExternalMetricSourceType:
 				metrics = append(metrics, autoscalingv2.MetricSpec{
-					Type: addtionalAutoscaling.Type,
+					Type: additionalAutoscaling.Type,
 					External: &autoscalingv2.ExternalMetricSource{
 						Metric: autoscalingv2.MetricIdentifier{
-							Name:     addtionalAutoscaling.External.Metric.Name,
-							Selector: addtionalAutoscaling.External.Metric.Selector,
+							Name:     additionalAutoscaling.External.Metric.Name,
+							Selector: additionalAutoscaling.External.Metric.Selector,
 						},
-						Target: getMetricTargetByType(addtionalAutoscaling.External.Target),
+						Target: getMetricTargetByType(additionalAutoscaling.External.Target),
 					},
 				})
 			}
