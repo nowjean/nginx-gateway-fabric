@@ -42,6 +42,21 @@ const (
 
 var emptyDirVolumeSource = corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}
 
+func autoscalingEnabled(dep *ngfAPIv1alpha2.DeploymentSpec) bool {
+	return dep != nil && dep.Autoscaling.Enabled
+}
+
+func cloneHPAAnnotationMap(src map[string]string) map[string]string {
+	if src == nil {
+		return nil
+	}
+	annotations := make(map[string]string, len(src))
+	for k, v := range src {
+		annotations[k] = v
+	}
+	return annotations
+}
+
 func (p *NginxProvisioner) buildNginxResourceObjects(
 	resourceName string,
 	gateway *gatewayv1.Gateway,
@@ -164,24 +179,19 @@ func (p *NginxProvisioner) buildNginxResourceObjects(
 		objects = append(objects, openshiftObjs...)
 	}
 
-	if nProxyCfg.Kubernetes.Deployment.Autoscaling.Enabled {
-		hpaAnnotations := make(map[string]string)
-		if nProxyCfg.Kubernetes.Deployment.Autoscaling.HPAAnnotations != nil {
-			for key, value := range nProxyCfg.Kubernetes.Deployment.Autoscaling.HPAAnnotations {
-				hpaAnnotations[key] = value
-			}
+	if nProxyCfg != nil && nProxyCfg.Kubernetes != nil {
+		if autoscalingEnabled(nProxyCfg.Kubernetes.Deployment) {
+			objectMeta.Annotations = cloneHPAAnnotationMap(nProxyCfg.Kubernetes.Deployment.Autoscaling.HPAAnnotations)
+			hpa := buildNginxDeploymentHPA(
+				objectMeta,
+				nProxyCfg,
+			)
+			objects = append(objects, service, deployment, hpa)
+			return objects, nil
 		}
-
-		objectMeta.Annotations = hpaAnnotations
-
-		hpa := buildNginxDeploymentHPA(
-			objectMeta,
-			nProxyCfg,
-		)
-		objects = append(objects, service, deployment, hpa)
-	} else {
-		objects = append(objects, service, deployment)
 	}
+
+	objects = append(objects, service, deployment)
 
 	return objects, err
 }
@@ -946,6 +956,10 @@ func buildNginxDeploymentHPA(
 	objectMeta metav1.ObjectMeta,
 	nProxyCfg *graph.EffectiveNginxProxy,
 ) *autoscalingv2.HorizontalPodAutoscaler {
+	dep := nProxyCfg.Kubernetes.Deployment
+	if dep == nil || !dep.Autoscaling.Enabled {
+		return nil
+	}
 	var metrics []autoscalingv2.MetricSpec
 
 	cpuUtil := nProxyCfg.Kubernetes.Deployment.Autoscaling.TargetCPUUtilizationPercentage
