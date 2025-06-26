@@ -46,6 +46,21 @@ const (
 
 var emptyDirVolumeSource = corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}
 
+func autoscalingEnabled(dep *ngfAPIv1alpha2.DeploymentSpec) bool {
+	return dep != nil && dep.Autoscaling.Enabled
+}
+
+func cloneHPAAnnotationMap(src map[string]string) map[string]string {
+	if src == nil {
+		return nil
+	}
+	annotations := make(map[string]string, len(src))
+	for k, v := range src {
+		annotations[k] = v
+	}
+	return annotations
+}
+
 func (p *NginxProvisioner) buildNginxResourceObjects(
 	resourceName string,
 	gateway *gatewayv1.Gateway,

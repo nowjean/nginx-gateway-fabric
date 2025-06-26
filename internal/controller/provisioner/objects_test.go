@@ -287,6 +287,12 @@ func TestBuildNginxResourceObjects_NginxProxyConfig(t *testing.T) {
 			},
 			Deployment: &ngfAPIv1alpha2.DeploymentSpec{
 				Replicas: helpers.GetPointer[int32](3),
+				Autoscaling: ngfAPIv1alpha2.HPASpec{
+					Enabled:                           true,
+					MinReplicas:                       helpers.GetPointer[int32](1),
+					MaxReplicas:                       5,
+					TargetMemoryUtilizationPercentage: helpers.GetPointer[int32](60),
+				},
 				Pod: ngfAPIv1alpha2.PodSpec{
 					TerminationGracePeriodSeconds: helpers.GetPointer[int64](25),
 				},
@@ -314,7 +320,7 @@ func TestBuildNginxResourceObjects_NginxProxyConfig(t *testing.T) {
 	objects, err := provisioner.buildNginxResourceObjects(resourceName, gateway, nProxyCfg)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	g.Expect(objects).To(HaveLen(6))
+	g.Expect(objects).To(HaveLen(7))
 
 	cmObj := objects[1]
 	cm, ok := cmObj.(*corev1.ConfigMap)
