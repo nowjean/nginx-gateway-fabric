@@ -46,21 +46,6 @@ const (
 
 var emptyDirVolumeSource = corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}
 
-func autoscalingEnabled(dep *ngfAPIv1alpha2.DeploymentSpec) bool {
-	return dep != nil && dep.Autoscaling.Enabled
-}
-
-func cloneHPAAnnotationMap(src map[string]string) map[string]string {
-	if src == nil {
-		return nil
-	}
-	annotations := make(map[string]string, len(src))
-	for k, v := range src {
-		annotations[k] = v
-	}
-	return annotations
-}
-
 func (p *NginxProvisioner) buildNginxResourceObjects(
 	resourceName string,
 	gateway *gatewayv1.Gateway,
@@ -1055,22 +1040,18 @@ func (p *NginxProvisioner) buildImage(nProxyCfg *graph.EffectiveNginxProxy) (str
 	return fmt.Sprintf("%s:%s", image, tag), pullPolicy
 }
 
-func getMetricTargetByType(
-	target autoscalingv2.MetricTarget,
-) autoscalingv2.MetricTarget {
+func getMetricTargetByType(target autoscalingv2.MetricTarget) autoscalingv2.MetricTarget {
 	switch target.Type {
 	case autoscalingv2.UtilizationMetricType:
 		return autoscalingv2.MetricTarget{
 			Type:               autoscalingv2.UtilizationMetricType,
 			AverageUtilization: target.AverageUtilization,
 		}
-
 	case autoscalingv2.AverageValueMetricType:
 		return autoscalingv2.MetricTarget{
 			Type:         autoscalingv2.AverageValueMetricType,
 			AverageValue: target.AverageValue,
 		}
-
 	case autoscalingv2.ValueMetricType:
 		return autoscalingv2.MetricTarget{
 			Type:  autoscalingv2.ValueMetricType,
