@@ -42,21 +42,6 @@ const (
 
 var emptyDirVolumeSource = corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}
 
-func autoscalingEnabled(dep *ngfAPIv1alpha2.DeploymentSpec) bool {
-	return dep != nil && dep.Autoscaling.Enabled
-}
-
-func cloneHPAAnnotationMap(src map[string]string) map[string]string {
-	if src == nil {
-		return nil
-	}
-	annotations := make(map[string]string, len(src))
-	for k, v := range src {
-		annotations[k] = v
-	}
-	return annotations
-}
-
 func (p *NginxProvisioner) buildNginxResourceObjects(
 	resourceName string,
 	gateway *gatewayv1.Gateway,
@@ -179,21 +164,46 @@ func (p *NginxProvisioner) buildNginxResourceObjects(
 		objects = append(objects, openshiftObjs...)
 	}
 
-	if nProxyCfg != nil && nProxyCfg.Kubernetes != nil {
-		if autoscalingEnabled(nProxyCfg.Kubernetes.Deployment) {
-			objectMeta.Annotations = cloneHPAAnnotationMap(nProxyCfg.Kubernetes.Deployment.Autoscaling.HPAAnnotations)
-			hpa := buildNginxDeploymentHPA(
-				objectMeta,
-				nProxyCfg,
-			)
-			objects = append(objects, service, deployment, hpa)
-			return objects, nil
-		}
-	}
-
 	objects = append(objects, service, deployment)
 
+	if hpa := p.buildHPAIfEnabled(objectMeta, nProxyCfg); hpa != nil {
+		objects = append(objects, hpa)
+	}
+
 	return objects, err
+}
+
+func autoscalingEnabled(dep *ngfAPIv1alpha2.DeploymentSpec) bool {
+	return dep != nil && dep.Autoscaling.Enabled
+}
+
+func cloneHPAAnnotationMap(src map[string]string) map[string]string {
+	if src == nil {
+		return nil
+	}
+	annotations := make(map[string]string, len(src))
+	for k, v := range src {
+		annotations[k] = v
+	}
+	return annotations
+}
+
+func (p *NginxProvisioner) buildHPAIfEnabled(
+	objectMeta metav1.ObjectMeta,
+	nProxyCfg *graph.EffectiveNginxProxy,
+) client.Object {
+	if nProxyCfg == nil || nProxyCfg.Kubernetes == nil {
+		return nil
+	}
+
+	if !autoscalingEnabled(nProxyCfg.Kubernetes.Deployment) {
+		return nil
+	}
+
+	hpaAnnotations := cloneHPAAnnotationMap(nProxyCfg.Kubernetes.Deployment.Autoscaling.HPAAnnotations)
+	objectMeta.Annotations = hpaAnnotations
+
+	return buildNginxDeploymentHPA(objectMeta, nProxyCfg)
 }
 
 func (p *NginxProvisioner) buildNginxSecrets(
@@ -926,22 +936,18 @@ func (p *NginxProvisioner) buildImage(nProxyCfg *graph.EffectiveNginxProxy) (str
 	return fmt.Sprintf("%s:%s", image, tag), pullPolicy
 }
 
-func getMetricTargetByType(
-	target autoscalingv2.MetricTarget,
-) autoscalingv2.MetricTarget {
+func getMetricTargetByType(target autoscalingv2.MetricTarget) autoscalingv2.MetricTarget {
 	switch target.Type {
 	case autoscalingv2.UtilizationMetricType:
 		return autoscalingv2.MetricTarget{
 			Type:               autoscalingv2.UtilizationMetricType,
 			AverageUtilization: target.AverageUtilization,
 		}
-
 	case autoscalingv2.AverageValueMetricType:
 		return autoscalingv2.MetricTarget{
 			Type:         autoscalingv2.AverageValueMetricType,
 			AverageValue: target.AverageValue,
 		}
-
 	case autoscalingv2.ValueMetricType:
 		return autoscalingv2.MetricTarget{
 			Type:  autoscalingv2.ValueMetricType,
@@ -994,59 +1000,9 @@ func buildNginxDeploymentHPA(
 
 	if autoscalingTemplate != nil {
 		for _, additionalAutoscaling := range *autoscalingTemplate {
-			switch additionalAutoscaling.Type {
-			case autoscalingv2.ResourceMetricSourceType:
-				metrics = append(metrics, autoscalingv2.MetricSpec{
-					Type: additionalAutoscaling.Type,
-					Resource: &autoscalingv2.ResourceMetricSource{
-						Name:   additionalAutoscaling.Resource.Name,
-						Target: getMetricTargetByType(additionalAutoscaling.Resource.Target),
-					},
-				})
-
-			case autoscalingv2.PodsMetricSourceType:
-				metrics = append(metrics, autoscalingv2.MetricSpec{
-					Type: additionalAutoscaling.Type,
-					Pods: &autoscalingv2.PodsMetricSource{
-						Metric: additionalAutoscaling.Pods.Metric,
-						Target: getMetricTargetByType(additionalAutoscaling.Pods.Target),
-					},
-				})
-
-			case autoscalingv2.ContainerResourceMetricSourceType:
-				metrics = append(metrics, autoscalingv2.MetricSpec{
-					Type: additionalAutoscaling.Type,
-					ContainerResource: &autoscalingv2.ContainerResourceMetricSource{
-						Name:      additionalAutoscaling.ContainerResource.Name,
-						Target:    getMetricTargetByType(additionalAutoscaling.ContainerResource.Target),
-						Container: additionalAutoscaling.ContainerResource.Container,
-					},
-				})
-
-			case autoscalingv2.ObjectMetricSourceType:
-				metrics = append(metrics, autoscalingv2.MetricSpec{
-					Type: additionalAutoscaling.Type,
-					Object: &autoscalingv2.ObjectMetricSource{
-						DescribedObject: additionalAutoscaling.Object.DescribedObject,
-						Target:          getMetricTargetByType(additionalAutoscaling.Object.Target),
-						Metric: autoscalingv2.MetricIdentifier{
-							Name:     additionalAutoscaling.Object.Metric.Name,
-							Selector: additionalAutoscaling.Object.Metric.Selector,
-						},
-					},
-				})
-
-			case autoscalingv2.ExternalMetricSourceType:
-				metrics = append(metrics, autoscalingv2.MetricSpec{
-					Type: additionalAutoscaling.Type,
-					External: &autoscalingv2.ExternalMetricSource{
-						Metric: autoscalingv2.MetricIdentifier{
-							Name:     additionalAutoscaling.External.Metric.Name,
-							Selector: additionalAutoscaling.External.Metric.Selector,
-						},
-						Target: getMetricTargetByType(additionalAutoscaling.External.Target),
-					},
-				})
+			metric := buildAdditionalMetric(additionalAutoscaling)
+			if metric != nil {
+				metrics = append(metrics, *metric)
 			}
 		}
 	}
@@ -1056,7 +1012,7 @@ func buildNginxDeploymentHPA(
 		return nil
 	}
 
-	hpa := &autoscalingv2.HorizontalPodAutoscaler{
+	return &autoscalingv2.HorizontalPodAutoscaler{
 		ObjectMeta: objectMeta,
 		Spec: autoscalingv2.HorizontalPodAutoscalerSpec{
 			ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
@@ -1070,8 +1026,61 @@ func buildNginxDeploymentHPA(
 			Behavior:    nProxyCfg.Kubernetes.Deployment.Autoscaling.Behavior,
 		},
 	}
+}
 
-	return hpa
+func buildAdditionalMetric(additionalAutoscaling autoscalingv2.MetricSpec) *autoscalingv2.MetricSpec {
+	switch additionalAutoscaling.Type {
+	case autoscalingv2.ResourceMetricSourceType:
+		return &autoscalingv2.MetricSpec{
+			Type: additionalAutoscaling.Type,
+			Resource: &autoscalingv2.ResourceMetricSource{
+				Name:   additionalAutoscaling.Resource.Name,
+				Target: getMetricTargetByType(additionalAutoscaling.Resource.Target),
+			},
+		}
+	case autoscalingv2.PodsMetricSourceType:
+		return &autoscalingv2.MetricSpec{
+			Type: additionalAutoscaling.Type,
+			Pods: &autoscalingv2.PodsMetricSource{
+				Metric: additionalAutoscaling.Pods.Metric,
+				Target: getMetricTargetByType(additionalAutoscaling.Pods.Target),
+			},
+		}
+	case autoscalingv2.ContainerResourceMetricSourceType:
+		return &autoscalingv2.MetricSpec{
+			Type: additionalAutoscaling.Type,
+			ContainerResource: &autoscalingv2.ContainerResourceMetricSource{
+				Name:      additionalAutoscaling.ContainerResource.Name,
+				Target:    getMetricTargetByType(additionalAutoscaling.ContainerResource.Target),
+				Container: additionalAutoscaling.ContainerResource.Container,
+			},
+		}
+	case autoscalingv2.ObjectMetricSourceType:
+		return &autoscalingv2.MetricSpec{
+			Type: additionalAutoscaling.Type,
+			Object: &autoscalingv2.ObjectMetricSource{
+				DescribedObject: additionalAutoscaling.Object.DescribedObject,
+				Target:          getMetricTargetByType(additionalAutoscaling.Object.Target),
+				Metric: autoscalingv2.MetricIdentifier{
+					Name:     additionalAutoscaling.Object.Metric.Name,
+					Selector: additionalAutoscaling.Object.Metric.Selector,
+				},
+			},
+		}
+	case autoscalingv2.ExternalMetricSourceType:
+		return &autoscalingv2.MetricSpec{
+			Type: additionalAutoscaling.Type,
+			External: &autoscalingv2.ExternalMetricSource{
+				Metric: autoscalingv2.MetricIdentifier{
+					Name:     additionalAutoscaling.External.Metric.Name,
+					Selector: additionalAutoscaling.External.Metric.Selector,
+				},
+				Target: getMetricTargetByType(additionalAutoscaling.External.Target),
+			},
+		}
+	default:
+		return nil
+	}
 }
 
 // TODO(sberman): see about how this can be made more elegant. Maybe create some sort of Object factory
