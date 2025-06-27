@@ -285,7 +285,6 @@ func TestBuildNginxResourceObjects_NginxProxyConfig(t *testing.T) {
 					MinReplicas:                       1,
 					MaxReplicas:                       5,
 					TargetMemoryUtilizationPercentage: helpers.GetPointer[int32](60),
-					// Behavior, AutoscalingTemplate, HPAAnnotations 등은 필요하면 채우고
 				},
 				Pod: ngfAPIv1alpha2.PodSpec{
 					TerminationGracePeriodSeconds: helpers.GetPointer[int64](25),

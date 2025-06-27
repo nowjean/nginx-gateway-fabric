@@ -166,29 +166,18 @@ func (p *NginxProvisioner) buildNginxResourceObjects(
 
 	objects = append(objects, service, deployment)
 
-	if hpa := p.buildHPAIfEnabled(objectMeta, nProxyCfg); hpa != nil {
+	if hpa := p.buildHPA(objectMeta, nProxyCfg); hpa != nil {
 		objects = append(objects, hpa)
 	}
 
 	return objects, err
 }
 
-func autoscalingEnabled(dep *ngfAPIv1alpha2.DeploymentSpec) bool {
+func isAutoscalingEnabled(dep *ngfAPIv1alpha2.DeploymentSpec) bool {
 	return dep != nil && dep.Autoscaling.Enabled
 }
 
-func cloneHPAAnnotationMap(src map[string]string) map[string]string {
-	if src == nil {
-		return nil
-	}
-	annotations := make(map[string]string, len(src))
-	for k, v := range src {
-		annotations[k] = v
-	}
-	return annotations
-}
-
-func (p *NginxProvisioner) buildHPAIfEnabled(
+func (p *NginxProvisioner) buildHPA(
 	objectMeta metav1.ObjectMeta,
 	nProxyCfg *graph.EffectiveNginxProxy,
 ) client.Object {
@@ -196,12 +185,11 @@ func (p *NginxProvisioner) buildHPAIfEnabled(
 		return nil
 	}
 
-	if !autoscalingEnabled(nProxyCfg.Kubernetes.Deployment) {
+	if !isAutoscalingEnabled(nProxyCfg.Kubernetes.Deployment) {
 		return nil
 	}
 
-	hpaAnnotations := cloneHPAAnnotationMap(nProxyCfg.Kubernetes.Deployment.Autoscaling.HPAAnnotations)
-	objectMeta.Annotations = hpaAnnotations
+	objectMeta.Annotations = nProxyCfg.Kubernetes.Deployment.Autoscaling.HPAAnnotations
 
 	return buildNginxDeploymentHPA(objectMeta, nProxyCfg)
 }
