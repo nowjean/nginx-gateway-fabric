@@ -100,46 +100,12 @@
       "properties": {
         "autoscaling": {
           "properties": {
-            "behavior": {
-              "required": [],
-              "title": "behavior",
-              "type": "object"
-            },
             "enabled": {
-              "default": true,
+              "default": false,
               "description": "Enable or disable Horizontal Pod Autoscaler",
               "required": [],
               "title": "enabled",
               "type": "boolean"
-            },
-            "hpaAnnotations": {
-              "required": [],
-              "title": "hpaAnnotations",
-              "type": "object"
-            },
-            "maxReplicas": {
-              "default": 11,
-              "required": [],
-              "title": "maxReplicas",
-              "type": "integer"
-            },
-            "minReplicas": {
-              "default": 1,
-              "required": [],
-              "title": "minReplicas",
-              "type": "integer"
-            },
-            "targetCPUUtilizationPercentage": {
-              "default": 50,
-              "required": [],
-              "title": "targetCPUUtilizationPercentage",
-              "type": "integer"
-            },
-            "targetMemoryUtilizationPercentage": {
-              "default": 50,
-              "required": [],
-              "title": "targetMemoryUtilizationPercentage",
-              "type": "integer"
             }
           },
           "required": [],
@@ -376,6 +342,7 @@
         },
         "container": {
           "description": "The container configuration for the NGINX container. This is applied globally to all Gateways managed by this\ninstance of NGINX Gateway Fabric.",
+<<<<<<< HEAD
           "properties": {
             "hostPorts": {
               "description": "A list of HostPorts to expose on the host.\nThis configuration allows containers to bind to a specific port on the host node,\nenabling external network traffic to reach the container directly through the host's IP address and port.\nUse this option when you need to expose container ports on the host for direct access,\nsuch as for debugging, legacy integrations, or when NodePort/LoadBalancer services are not suitable.\nNote: Using hostPort may have security and scheduling implications, as it ties pods to specific nodes and ports.",
@@ -429,6 +396,8 @@
               "type": "array"
             }
           },
+=======
+>>>>>>> Code Review
           "required": [],
           "title": "container",
           "type": "object"
@@ -659,46 +628,12 @@
         },
         "autoscaling": {
           "properties": {
-            "annotations": {
-              "required": [],
-              "title": "annotations",
-              "type": "object"
-            },
-            "behavior": {
-              "required": [],
-              "title": "behavior",
-              "type": "object"
-            },
             "enabled": {
               "default": false,
               "description": "Enable or disable Horizontal Pod Autoscaler",
               "required": [],
               "title": "enabled",
               "type": "boolean"
-            },
-            "maxReplicas": {
-              "default": 11,
-              "required": [],
-              "title": "maxReplicas",
-              "type": "integer"
-            },
-            "minReplicas": {
-              "default": 1,
-              "required": [],
-              "title": "minReplicas",
-              "type": "integer"
-            },
-            "targetCPUUtilizationPercentage": {
-              "default": 50,
-              "required": [],
-              "title": "targetCPUUtilizationPercentage",
-              "type": "integer"
-            },
-            "targetMemoryUtilizationPercentage": {
-              "default": 50,
-              "required": [],
-              "title": "targetMemoryUtilizationPercentage",
-              "type": "integer"
             }
           },
           "required": [],

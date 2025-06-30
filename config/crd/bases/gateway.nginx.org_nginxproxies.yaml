@@ -4012,7 +4012,11 @@ spec:
                             type: array
                           behavior:
                             description: |-
+<<<<<<< HEAD
                               Behavior configures the scaling behavior of the target
+=======
+                              behavior configures the scaling behavior of the target
+>>>>>>> Code Review
                               in both Up and Down directions (scaleUp and scaleDown fields respectively).
                               If not set, the default HPAScalingRules for scale up and scale down are used.
                             properties:
@@ -4171,6 +4175,19 @@ spec:
                           enabled:
                             description: Enable or disable Horizontal Pod Autoscaler
                             type: boolean
+<<<<<<< HEAD
+=======
+                          hpaAnnotations:
+                            additionalProperties:
+                              type: string
+                            description: |-
+                              Annotation for Horizontal Pod Autoscaler
+                              Annotations is an unstructured key value map stored with a resource that may be
+                              set by external tools to store and retrieve arbitrary metadata. They are not
+                              queryable and should be preserved when modifying objects.
+                              More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations
+                            type: object
+>>>>>>> Code Review
                           maxReplicas:
                             description: Maximum number of replicas.
                             format: int32
@@ -4191,6 +4208,20 @@ spec:
                         - enabled
                         - maxReplicas
                         type: object
+                        x-kubernetes-validations:
+                        - message: at least one metric must be specified when autoscaling
+                            is enabled
+                          rule: '!self.enabled || (has(self.targetCPUUtilizationPercentage)
+                            || has(self.targetMemoryUtilizationPercentage) || (has(self.autoscalingTemplate)
+                            && size(self.autoscalingTemplate) > 0))'
+                        - message: minReplicas must be less than or equal to maxReplicas
+                          rule: self.minReplicas <= self.maxReplicas
+                        - message: CPU utilization must be between 1 and 100
+                          rule: '!has(self.targetCPUUtilizationPercentage) || (self.targetCPUUtilizationPercentage
+                            >= 1 && self.targetCPUUtilizationPercentage <= 100)'
+                        - message: memory utilization must be between 1 and 100
+                          rule: '!has(self.targetMemoryUtilizationPercentage) || (self.targetMemoryUtilizationPercentage
+                            >= 1 && self.targetMemoryUtilizationPercentage <= 100)'
                       container:
                         description: Container defines container fields for the NGINX
                           container.
@@ -7688,14 +7719,28 @@ spec:
                             automatically if required. The default NodePort range enforced by Kubernetes is 30000-32767.
                           properties:
                             listenerPort:
+<<<<<<< HEAD
                               description: ListenerPort is the Gateway listener port
                                 that this NodePort maps to.
+=======
+                              description: |-
+                                ListenerPort is the Gateway listener port that this NodePort maps to.
+                                kubebuilder:validation:Minimum=1
+                                kubebuilder:validation:Maximum=65535
+>>>>>>> Code Review
                               format: int32
                               maximum: 65535
                               minimum: 1
                               type: integer
                             port:
+<<<<<<< HEAD
                               description: Port is the NodePort to expose.
+=======
+                              description: |-
+                                Port is the NodePort to expose.
+                                kubebuilder:validation:Minimum=1
+                                kubebuilder:validation:Maximum=65535
+>>>>>>> Code Review
                               format: int32
                               maximum: 65535
                               minimum: 1

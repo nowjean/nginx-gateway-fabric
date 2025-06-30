@@ -15,6 +15,7 @@ spec:
       {{- if .Values.nginx.replicas }}
       replicas: {{ .Values.nginx.replicas }}
       {{- end }}
+      {{- if .Values.nginx.autoscaling.enabled }}
       autoscaling:
         enabled: {{ .Values.nginx.autoscaling.enabled }}
         {{- if .Values.nginx.autoscaling.hpaAnnotations }}
@@ -23,8 +24,12 @@ spec:
         {{- end }}
         minReplicas: {{ .Values.nginx.autoscaling.minReplicas }}
         maxReplicas: {{ .Values.nginx.autoscaling.maxReplicas }}
+        {{- if .Values.nginx.autoscaling.targetCPUUtilizationPercentage }}
         targetCPUUtilizationPercentage: {{ .Values.nginx.autoscaling.targetCPUUtilizationPercentage }}
+        {{- end }}
+        {{- if .Values.nginx.autoscaling.targetMemoryUtilizationPercentage }}
         targetMemoryUtilizationPercentage: {{ .Values.nginx.autoscaling.targetMemoryUtilizationPercentage }}
+        {{- end }}
         {{- if .Values.nginx.autoscaling.behavior }}
         behavior:
           {{- toYaml .Values.nginx.autoscaling.behavior | nindent 10 }}
@@ -33,6 +38,7 @@ spec:
         autoscalingTemplate:
           {{- toYaml .Values.nginx.autoscalingTemplate | nindent 8 }}
         {{- end }}
+      {{- end }}
       {{- if .Values.nginx.pod }}
       pod:
         {{- toYaml .Values.nginx.pod | nindent 8 }}

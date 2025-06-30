@@ -466,6 +466,12 @@ type DaemonSetSpec struct {
 	Patches []Patch `json:"patches,omitempty"`
 }
 
+// +kubebuilder:validation:XValidation:message="at least one metric must be specified when autoscaling is enabled",rule="!self.enabled || (has(self.targetCPUUtilizationPercentage) || has(self.targetMemoryUtilizationPercentage) || (has(self.autoscalingTemplate) && size(self.autoscalingTemplate) > 0))"
+// +kubebuilder:validation:XValidation:message="minReplicas must be less than or equal to maxReplicas",rule="self.minReplicas <= self.maxReplicas"
+// +kubebuilder:validation:XValidation:message="CPU utilization must be between 1 and 100",rule="!has(self.targetCPUUtilizationPercentage) || (self.targetCPUUtilizationPercentage >= 1 && self.targetCPUUtilizationPercentage <= 100)"
+// +kubebuilder:validation:XValidation:message="memory utilization must be between 1 and 100",rule="!has(self.targetMemoryUtilizationPercentage) || (self.targetMemoryUtilizationPercentage >= 1 && self.targetMemoryUtilizationPercentage <= 100)"
+//
+//nolint:lll
 type HPASpec struct {
 	// Behavior configures the scaling behavior of the target
 	// in both Up and Down directions (scaleUp and scaleDown fields respectively).
