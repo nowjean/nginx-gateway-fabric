@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"maps"
 	"sort"
 	"strconv"
@@ -189,9 +188,7 @@ func (p *NginxProvisioner) buildHPA(
 		return nil
 	}
 
-	objectMeta.Annotations = nProxyCfg.Kubernetes.Deployment.Autoscaling.HPAAnnotations
-
-	return buildNginxDeploymentHPA(objectMeta, nProxyCfg)
+	return buildNginxDeploymentHPA(objectMeta, nProxyCfg.Kubernetes.Deployment.Autoscaling)
 }
 
 func (p *NginxProvisioner) buildNginxSecrets(
@@ -948,17 +945,18 @@ func getMetricTargetByType(target autoscalingv2.MetricTarget) autoscalingv2.Metr
 
 func buildNginxDeploymentHPA(
 	objectMeta metav1.ObjectMeta,
-	nProxyCfg *graph.EffectiveNginxProxy,
+	autoSacaling ngfAPIv1alpha2.HPASpec,
 ) *autoscalingv2.HorizontalPodAutoscaler {
-	dep := nProxyCfg.Kubernetes.Deployment
-	if dep == nil || !dep.Autoscaling.Enabled {
+	objectMeta.Annotations = autoSacaling.HPAAnnotations
+
+	if !autoSacaling.Enabled {
 		return nil
 	}
 	var metrics []autoscalingv2.MetricSpec
 
-	cpuUtil := nProxyCfg.Kubernetes.Deployment.Autoscaling.TargetCPUUtilizationPercentage
-	memUtil := nProxyCfg.Kubernetes.Deployment.Autoscaling.TargetMemoryUtilizationPercentage
-	autoscalingTemplate := nProxyCfg.Kubernetes.Deployment.Autoscaling.AutoscalingTemplate
+	cpuUtil := autoSacaling.TargetCPUUtilizationPercentage
+	memUtil := autoSacaling.TargetMemoryUtilizationPercentage
+	autoscalingTemplate := autoSacaling.AutoscalingTemplate
 
 	if cpuUtil != nil {
 		metrics = append(metrics, autoscalingv2.MetricSpec{
@@ -996,7 +994,7 @@ func buildNginxDeploymentHPA(
 	}
 
 	if len(metrics) == 0 {
-		log.Fatal("No HPA metric provided")
+		// No metrics configured, skip HPA creation
 		return nil
 	}
 
@@ -1008,10 +1006,10 @@ func buildNginxDeploymentHPA(
 				Kind:       "Deployment",
 				Name:       objectMeta.Name,
 			},
-			MinReplicas: &nProxyCfg.Kubernetes.Deployment.Autoscaling.MinReplicas,
-			MaxReplicas: nProxyCfg.Kubernetes.Deployment.Autoscaling.MaxReplicas,
+			MinReplicas: &autoSacaling.MinReplicas,
+			MaxReplicas: autoSacaling.MaxReplicas,
 			Metrics:     metrics,
-			Behavior:    nProxyCfg.Kubernetes.Deployment.Autoscaling.Behavior,
+			Behavior:    autoSacaling.Behavior,
 		},
 	}
 }

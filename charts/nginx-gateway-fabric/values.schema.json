@@ -100,46 +100,12 @@
       "properties": {
         "autoscaling": {
           "properties": {
-            "behavior": {
-              "required": [],
-              "title": "behavior",
-              "type": "object"
-            },
             "enabled": {
-              "default": true,
+              "default": false,
               "description": "Enable or disable Horizontal Pod Autoscaler",
               "required": [],
               "title": "enabled",
               "type": "boolean"
-            },
-            "hpaAnnotations": {
-              "required": [],
-              "title": "hpaAnnotations",
-              "type": "object"
-            },
-            "maxReplicas": {
-              "default": 11,
-              "required": [],
-              "title": "maxReplicas",
-              "type": "integer"
-            },
-            "minReplicas": {
-              "default": 1,
-              "required": [],
-              "title": "minReplicas",
-              "type": "integer"
-            },
-            "targetCPUUtilizationPercentage": {
-              "default": 50,
-              "required": [],
-              "title": "targetCPUUtilizationPercentage",
-              "type": "integer"
-            },
-            "targetMemoryUtilizationPercentage": {
-              "default": 50,
-              "required": [],
-              "title": "targetMemoryUtilizationPercentage",
-              "type": "integer"
             }
           },
           "required": [],
@@ -369,14 +335,6 @@
         },
         "container": {
           "description": "The container configuration for the NGINX container. This is applied globally to all Gateways managed by this\ninstance of NGINX Gateway Fabric.",
-          "properties": {
-            "resources": {
-              "description": "The resource requirements of the NGINX container. You should be set this value, If you want to use dataplane Autoscaling(HPA).",
-              "required": [],
-              "title": "resources",
-              "type": "object"
-            }
-          },
           "required": [],
           "title": "container",
           "type": "object"
@@ -454,17 +412,6 @@
         },
         "pod": {
           "description": "The pod configuration for the NGINX data plane pod. This is applied globally to all Gateways managed by this\ninstance of NGINX Gateway Fabric.",
-          "properties": {
-            "tolerations": {
-              "description": "Tolerations for the NGINX data plane pod.",
-              "items": {
-                "required": []
-              },
-              "required": [],
-              "title": "tolerations",
-              "type": "array"
-            }
-          },
           "required": [],
           "title": "pod",
           "type": "object"
@@ -618,46 +565,12 @@
         },
         "autoscaling": {
           "properties": {
-            "annotations": {
-              "required": [],
-              "title": "annotations",
-              "type": "object"
-            },
-            "behavior": {
-              "required": [],
-              "title": "behavior",
-              "type": "object"
-            },
             "enabled": {
               "default": false,
               "description": "Enable or disable Horizontal Pod Autoscaler",
               "required": [],
               "title": "enabled",
               "type": "boolean"
-            },
-            "maxReplicas": {
-              "default": 11,
-              "required": [],
-              "title": "maxReplicas",
-              "type": "integer"
-            },
-            "minReplicas": {
-              "default": 1,
-              "required": [],
-              "title": "minReplicas",
-              "type": "integer"
-            },
-            "targetCPUUtilizationPercentage": {
-              "default": 50,
-              "required": [],
-              "title": "targetCPUUtilizationPercentage",
-              "type": "integer"
-            },
-            "targetMemoryUtilizationPercentage": {
-              "default": 50,
-              "required": [],
-              "title": "targetMemoryUtilizationPercentage",
-              "type": "integer"
             }
           },
           "required": [],
@@ -857,6 +770,13 @@
           "required": [],
           "title": "metrics",
           "type": "object"
+        },
+        "name": {
+          "default": "",
+          "description": "The name of the NGINX Gateway Fabric deployment - if not present, then by default uses release name given during installation.",
+          "required": [],
+          "title": "name",
+          "type": "string"
         },
         "nodeSelector": {
           "description": "The nodeSelector of the NGINX Gateway Fabric control plane pod.",

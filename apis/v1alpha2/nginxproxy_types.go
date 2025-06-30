@@ -418,6 +418,12 @@ type DaemonSetSpec struct {
 	Container ContainerSpec `json:"container"`
 }
 
+// +kubebuilder:validation:XValidation:message="at least one metric must be specified when autoscaling is enabled",rule="!self.enabled || (has(self.targetCPUUtilizationPercentage) || has(self.targetMemoryUtilizationPercentage) || (has(self.autoscalingTemplate) && size(self.autoscalingTemplate) > 0))"
+// +kubebuilder:validation:XValidation:message="minReplicas must be less than or equal to maxReplicas",rule="self.minReplicas <= self.maxReplicas"
+// +kubebuilder:validation:XValidation:message="CPU utilization must be between 1 and 100",rule="!has(self.targetCPUUtilizationPercentage) || (self.targetCPUUtilizationPercentage >= 1 && self.targetCPUUtilizationPercentage <= 100)"
+// +kubebuilder:validation:XValidation:message="memory utilization must be between 1 and 100",rule="!has(self.targetMemoryUtilizationPercentage) || (self.targetMemoryUtilizationPercentage >= 1 && self.targetMemoryUtilizationPercentage <= 100)"
+//
+//nolint:lll
 type HPASpec struct {
 	// behavior configures the scaling behavior of the target
 	// in both Up and Down directions (scaleUp and scaleDown fields respectively).
@@ -446,13 +452,14 @@ type HPASpec struct {
 	// set by external tools to store and retrieve arbitrary metadata. They are not
 	// queryable and should be preserved when modifying objects.
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations
+	//
 	// +optional
 	HPAAnnotations map[string]string `json:"hpaAnnotations,omitempty"`
 
-	// Minimun of replicas.
+	// Minimum number of replicas.
 	MinReplicas int32 `json:"minReplicas"`
 
-	// Minimun of replicas.
+	// Maximum number of replicas.
 	MaxReplicas int32 `json:"maxReplicas"`
 
 	// Enable or disable Horizontal Pod Autoscaler

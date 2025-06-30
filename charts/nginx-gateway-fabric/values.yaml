@@ -13,6 +13,9 @@ nginxGateway:
   # -- The kind of the NGINX Gateway Fabric installation - currently, only deployment is supported.
   kind: deployment
 
+  # -- The name of the NGINX Gateway Fabric deployment - if not present, then by default uses release name given during installation.
+  name: ""
+
   # @schema
   # required: true
   # type: string
@@ -159,12 +162,12 @@ nginxGateway:
   autoscaling:
     # Enable or disable Horizontal Pod Autoscaler
     enabled: false
-    annotations: {}
-    minReplicas: 1
-    maxReplicas: 11
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 50
-    behavior: {}
+    # annotations: {}
+    # minReplicas: 1
+    # maxReplicas: 11
+    # targetCPUUtilizationPercentage: 50
+    # targetMemoryUtilizationPercentage: 50
+    # behavior: {}
     # scaleDown:
     #   stabilizationWindowSeconds: 300
     #   policies:
@@ -230,13 +233,13 @@ nginx:
 
   autoscaling:
     # Enable or disable Horizontal Pod Autoscaler
-    enabled: true
-    hpaAnnotations: {}
-    minReplicas: 1
-    maxReplicas: 11
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 50
-    behavior: {}
+    enabled: false
+    # hpaAnnotations: {}
+    # minReplicas: 1
+    # maxReplicas: 11
+    # targetCPUUtilizationPercentage: 50
+    # targetMemoryUtilizationPercentage: 50
+    # behavior: {}
     # scaleDown:
     #   stabilizationWindowSeconds: 300
     #   policies:
@@ -440,12 +443,12 @@ nginx:
 
   # -- The pod configuration for the NGINX data plane pod. This is applied globally to all Gateways managed by this
   # instance of NGINX Gateway Fabric.
-  pod:
+  pod: {}
     # -- The termination grace period of the NGINX data plane pod.
     # terminationGracePeriodSeconds: 30
 
     # -- Tolerations for the NGINX data plane pod.
-    tolerations: []
+    # tolerations: []
 
     # -- The nodeSelector of the NGINX data plane pod.
     # nodeSelector: {}
@@ -462,9 +465,10 @@ nginx:
 
   # -- The container configuration for the NGINX container. This is applied globally to all Gateways managed by this
   # instance of NGINX Gateway Fabric.
-  container:
-    # -- The resource requirements of the NGINX container. You should be set this value, If you want to use dataplane Autoscaling(HPA).
-    resources: {}
+  container: {}
+    # -- The resource requirements of the NGINX container. You should set this value if you want to use dataplane Autoscaling(HPA).
+    # resources: {}
+
     # -- The lifecycle of the NGINX container.
     # lifecycle: {}
 
