@@ -180,11 +180,7 @@ func (p *NginxProvisioner) buildHPA(
 	objectMeta metav1.ObjectMeta,
 	nProxyCfg *graph.EffectiveNginxProxy,
 ) client.Object {
-	if nProxyCfg == nil || nProxyCfg.Kubernetes == nil {
-		return nil
-	}
-
-	if !isAutoscalingEnabled(nProxyCfg.Kubernetes.Deployment) {
+	if nProxyCfg == nil || nProxyCfg.Kubernetes == nil || !isAutoscalingEnabled(nProxyCfg.Kubernetes.Deployment) {
 		return nil
 	}
 
@@ -945,18 +941,18 @@ func getMetricTargetByType(target autoscalingv2.MetricTarget) autoscalingv2.Metr
 
 func buildNginxDeploymentHPA(
 	objectMeta metav1.ObjectMeta,
-	autoSacaling ngfAPIv1alpha2.HPASpec,
+	autoScaling ngfAPIv1alpha2.HPASpec,
 ) *autoscalingv2.HorizontalPodAutoscaler {
-	objectMeta.Annotations = autoSacaling.HPAAnnotations
+	objectMeta.Annotations = autoScaling.HPAAnnotations
 
-	if !autoSacaling.Enabled {
+	if !autoScaling.Enabled {
 		return nil
 	}
 	var metrics []autoscalingv2.MetricSpec
 
-	cpuUtil := autoSacaling.TargetCPUUtilizationPercentage
-	memUtil := autoSacaling.TargetMemoryUtilizationPercentage
-	autoscalingTemplate := autoSacaling.AutoscalingTemplate
+	cpuUtil := autoScaling.TargetCPUUtilizationPercentage
+	memUtil := autoScaling.TargetMemoryUtilizationPercentage
+	autoscalingTemplate := autoScaling.AutoscalingTemplate
 
 	if cpuUtil != nil {
 		metrics = append(metrics, autoscalingv2.MetricSpec{
@@ -1006,10 +1002,10 @@ func buildNginxDeploymentHPA(
 				Kind:       "Deployment",
 				Name:       objectMeta.Name,
 			},
-			MinReplicas: &autoSacaling.MinReplicas,
-			MaxReplicas: autoSacaling.MaxReplicas,
+			MinReplicas: &autoScaling.MinReplicas,
+			MaxReplicas: autoScaling.MaxReplicas,
 			Metrics:     metrics,
-			Behavior:    autoSacaling.Behavior,
+			Behavior:    autoScaling.Behavior,
 		},
 	}
 }

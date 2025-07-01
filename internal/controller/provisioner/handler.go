@@ -119,7 +119,7 @@ func (h *eventHandler) HandleEventBatch(ctx context.Context, logger logr.Logger,
 				}
 				h.store.deleteGateway(e.NamespacedName)
 			case *appsv1.Deployment, *appsv1.DaemonSet, *corev1.Service, *corev1.ServiceAccount,
-				*corev1.ConfigMap, *rbacv1.Role, *rbacv1.RoleBinding:
+				*corev1.ConfigMap, *rbacv1.Role, *rbacv1.RoleBinding, *autoscalingv2.HorizontalPodAutoscaler:
 				if err := h.reprovisionResources(ctx, e); err != nil {
 					logger.Error(err, "error re-provisioning nginx resources")
 				}

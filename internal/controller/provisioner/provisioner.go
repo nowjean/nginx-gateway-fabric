@@ -200,7 +200,6 @@ func (p *NginxProvisioner) provisionNginx(
 	var agentConfigMapUpdated, deploymentCreated bool
 	var deploymentObj *appsv1.Deployment
 	var daemonSetObj *appsv1.DaemonSet
-
 	for _, obj := range objects {
 		createCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 

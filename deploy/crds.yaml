@@ -4045,7 +4045,8 @@ spec:
                       This is the default deployment option.
                     properties:
                       autoscaling:
-                        description: Horizontal Pod Autoscaling.
+                        description: Autoscaling defines the configuration for Horizontal
+                          Pod Autoscaling.
                         properties:
                           autoscalingTemplate:
                             description: AutoscalingTemplate configures the additional
@@ -4526,7 +4527,7 @@ spec:
                             type: array
                           behavior:
                             description: |-
-                              behavior configures the scaling behavior of the target
+                              Behavior configures the scaling behavior of the target
                               in both Up and Down directions (scaleUp and scaleDown fields respectively).
                               If not set, the default HPAScalingRules for scale up and scale down are used.
                             properties:

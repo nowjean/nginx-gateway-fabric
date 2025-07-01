@@ -389,7 +389,7 @@ type DeploymentSpec struct {
 	// +optional
 	Replicas *int32 `json:"replicas,omitempty"`
 
-	// Horizontal Pod Autoscaling.
+	// Autoscaling defines the configuration for Horizontal Pod Autoscaling.
 	//
 	// +optional
 	Autoscaling HPASpec `json:"autoscaling"`
@@ -423,9 +423,11 @@ type DaemonSetSpec struct {
 // +kubebuilder:validation:XValidation:message="CPU utilization must be between 1 and 100",rule="!has(self.targetCPUUtilizationPercentage) || (self.targetCPUUtilizationPercentage >= 1 && self.targetCPUUtilizationPercentage <= 100)"
 // +kubebuilder:validation:XValidation:message="memory utilization must be between 1 and 100",rule="!has(self.targetMemoryUtilizationPercentage) || (self.targetMemoryUtilizationPercentage >= 1 && self.targetMemoryUtilizationPercentage <= 100)"
 //
+// HPASpec is the configuration for the Horizontal Pod Autoscaling.
+//
 //nolint:lll
 type HPASpec struct {
-	// behavior configures the scaling behavior of the target
+	// Behavior configures the scaling behavior of the target
 	// in both Up and Down directions (scaleUp and scaleDown fields respectively).
 	// If not set, the default HPAScalingRules for scale up and scale down are used.
 	//
