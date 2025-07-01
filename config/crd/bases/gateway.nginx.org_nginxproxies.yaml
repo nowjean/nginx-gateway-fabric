@@ -3531,7 +3531,8 @@ spec:
                       This is the default deployment option.
                     properties:
                       autoscaling:
-                        description: Horizontal Pod Autoscaling.
+                        description: Autoscaling defines the configuration for Horizontal
+                          Pod Autoscaling.
                         properties:
                           autoscalingTemplate:
                             description: AutoscalingTemplate configures the additional
@@ -4013,10 +4014,14 @@ spec:
                           behavior:
                             description: |-
 <<<<<<< HEAD
+<<<<<<< HEAD
                               Behavior configures the scaling behavior of the target
 =======
                               behavior configures the scaling behavior of the target
 >>>>>>> Code Review
+=======
+                              Behavior configures the scaling behavior of the target
+>>>>>>> Code Review & HPA event handler
                               in both Up and Down directions (scaleUp and scaleDown fields respectively).
                               If not set, the default HPAScalingRules for scale up and scale down are used.
                             properties:

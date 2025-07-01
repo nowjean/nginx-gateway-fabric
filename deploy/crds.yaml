@@ -4116,7 +4116,8 @@ spec:
                       This is the default deployment option.
                     properties:
                       autoscaling:
-                        description: Horizontal Pod Autoscaling.
+                        description: Autoscaling defines the configuration for Horizontal
+                          Pod Autoscaling.
                         properties:
                           autoscalingTemplate:
                             description: AutoscalingTemplate configures the additional
