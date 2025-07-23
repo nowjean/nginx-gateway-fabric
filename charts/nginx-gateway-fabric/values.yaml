@@ -234,7 +234,6 @@ nginx:
   autoscaling:
     # Enable or disable Horizontal Pod Autoscaler
     enabled: false
-    # hpaAnnotations: {}
     # minReplicas: 1
     # maxReplicas: 11
     # targetCPUUtilizationPercentage: 50

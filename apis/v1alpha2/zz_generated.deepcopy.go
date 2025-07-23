@@ -123,12 +123,10 @@ func (in *HPASpec) DeepCopyInto(out *HPASpec) {
 		*out = new(int32)
 		**out = **in
 	}
-	if in.HPAAnnotations != nil {
-		in, out := &in.HPAAnnotations, &out.HPAAnnotations
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
+	if in.MinReplicas != nil {
+		in, out := &in.MinReplicas, &out.MinReplicas
+		*out = new(int32)
+		**out = **in
 	}
 }
 

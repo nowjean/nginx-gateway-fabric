@@ -282,7 +282,7 @@ func TestBuildNginxResourceObjects_NginxProxyConfig(t *testing.T) {
 				Replicas: helpers.GetPointer[int32](3),
 				Autoscaling: ngfAPIv1alpha2.HPASpec{
 					Enabled:                           true,
-					MinReplicas:                       1,
+					MinReplicas:                       helpers.GetPointer[int32](1),
 					MaxReplicas:                       5,
 					TargetMemoryUtilizationPercentage: helpers.GetPointer[int32](60),
 				},

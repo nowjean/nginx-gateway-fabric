@@ -943,8 +943,6 @@ func buildNginxDeploymentHPA(
 	objectMeta metav1.ObjectMeta,
 	autoScaling ngfAPIv1alpha2.HPASpec,
 ) *autoscalingv2.HorizontalPodAutoscaler {
-	objectMeta.Annotations = autoScaling.HPAAnnotations
-
 	if !autoScaling.Enabled {
 		return nil
 	}
@@ -1002,7 +1000,7 @@ func buildNginxDeploymentHPA(
 				Kind:       "Deployment",
 				Name:       objectMeta.Name,
 			},
-			MinReplicas: &autoScaling.MinReplicas,
+			MinReplicas: autoScaling.MinReplicas,
 			MaxReplicas: autoScaling.MaxReplicas,
 			Metrics:     metrics,
 			Behavior:    autoScaling.Behavior,

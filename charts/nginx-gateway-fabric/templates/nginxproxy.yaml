@@ -18,10 +18,6 @@ spec:
       {{- if .Values.nginx.autoscaling.enabled }}
       autoscaling:
         enabled: {{ .Values.nginx.autoscaling.enabled }}
-        {{- if .Values.nginx.autoscaling.hpaAnnotations }}
-        hpaAnnotations:
-          {{- toYaml .Values.nginx.autoscaling.hpaAnnotations | nindent 10 }}
-        {{- end }}
         minReplicas: {{ .Values.nginx.autoscaling.minReplicas }}
         maxReplicas: {{ .Values.nginx.autoscaling.maxReplicas }}
         {{- if .Values.nginx.autoscaling.targetCPUUtilizationPercentage }}

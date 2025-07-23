@@ -4101,16 +4101,6 @@ spec:
                           enabled:
                             description: Enable or disable Horizontal Pod Autoscaler
                             type: boolean
-                          hpaAnnotations:
-                            additionalProperties:
-                              type: string
-                            description: |-
-                              Annotation for Horizontal Pod Autoscaler
-                              Annotations is an unstructured key value map stored with a resource that may be
-                              set by external tools to store and retrieve arbitrary metadata. They are not
-                              queryable and should be preserved when modifying objects.
-                              More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations
-                            type: object
                           maxReplicas:
                             description: Maximum number of replicas.
                             format: int32
