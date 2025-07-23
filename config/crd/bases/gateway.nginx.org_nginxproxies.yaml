@@ -4181,6 +4181,7 @@ spec:
                             description: Enable or disable Horizontal Pod Autoscaler
                             type: boolean
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
                           hpaAnnotations:
                             additionalProperties:
@@ -4192,6 +4193,8 @@ spec:
                               queryable and should be preserved when modifying objects.
                               More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations
                             type: object
+>>>>>>> Code Review
+=======
 >>>>>>> Code Review
                           maxReplicas:
                             description: Maximum number of replicas.

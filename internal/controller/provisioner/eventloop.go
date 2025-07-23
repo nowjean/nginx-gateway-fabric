@@ -81,7 +81,6 @@ func newEventLoop(
 					k8spredicate.And(
 						k8spredicate.GenerationChangedPredicate{},
 						nginxResourceLabelPredicate,
-						predicate.RestartDeploymentAnnotationPredicate{},
 					),
 				),
 			},
