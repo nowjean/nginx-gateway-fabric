@@ -4705,7 +4705,6 @@ spec:
                         required:
                         - enabled
                         - maxReplicas
-                        - minReplicas
                         type: object
                         x-kubernetes-validations:
                         - message: at least one metric must be specified when autoscaling

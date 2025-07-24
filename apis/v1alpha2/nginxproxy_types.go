@@ -450,7 +450,9 @@ type HPASpec struct {
 	TargetMemoryUtilizationPercentage *int32 `json:"targetMemoryUtilizationPercentage,omitempty"`
 
 	// Minimum number of replicas.
-	MinReplicas *int32 `json:"minReplicas"`
+	//
+	// +optional
+	MinReplicas *int32 `json:"minReplicas,omitempty"`
 
 	// Maximum number of replicas.
 	MaxReplicas int32 `json:"maxReplicas"`
