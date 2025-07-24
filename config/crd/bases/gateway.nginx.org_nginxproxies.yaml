@@ -4013,15 +4013,7 @@ spec:
                             type: array
                           behavior:
                             description: |-
-<<<<<<< HEAD
-<<<<<<< HEAD
                               Behavior configures the scaling behavior of the target
-=======
-                              behavior configures the scaling behavior of the target
->>>>>>> Code Review
-=======
-                              Behavior configures the scaling behavior of the target
->>>>>>> Code Review & HPA event handler
                               in both Up and Down directions (scaleUp and scaleDown fields respectively).
                               If not set, the default HPAScalingRules for scale up and scale down are used.
                             properties:
@@ -4180,22 +4172,6 @@ spec:
                           enabled:
                             description: Enable or disable Horizontal Pod Autoscaler
                             type: boolean
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-                          hpaAnnotations:
-                            additionalProperties:
-                              type: string
-                            description: |-
-                              Annotation for Horizontal Pod Autoscaler
-                              Annotations is an unstructured key value map stored with a resource that may be
-                              set by external tools to store and retrieve arbitrary metadata. They are not
-                              queryable and should be preserved when modifying objects.
-                              More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations
-                            type: object
->>>>>>> Code Review
-=======
->>>>>>> Code Review
                           maxReplicas:
                             description: Maximum number of replicas.
                             format: int32
@@ -7727,28 +7703,14 @@ spec:
                             automatically if required. The default NodePort range enforced by Kubernetes is 30000-32767.
                           properties:
                             listenerPort:
-<<<<<<< HEAD
                               description: ListenerPort is the Gateway listener port
                                 that this NodePort maps to.
-=======
-                              description: |-
-                                ListenerPort is the Gateway listener port that this NodePort maps to.
-                                kubebuilder:validation:Minimum=1
-                                kubebuilder:validation:Maximum=65535
->>>>>>> Code Review
                               format: int32
                               maximum: 65535
                               minimum: 1
                               type: integer
                             port:
-<<<<<<< HEAD
                               description: Port is the NodePort to expose.
-=======
-                              description: |-
-                                Port is the NodePort to expose.
-                                kubebuilder:validation:Minimum=1
-                                kubebuilder:validation:Maximum=65535
->>>>>>> Code Review
                               format: int32
                               maximum: 65535
                               minimum: 1
